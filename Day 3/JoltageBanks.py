@@ -9,17 +9,15 @@ lines = input.readlines()
 def findBoundedMax(start, end, bank):
     maxNum = 0
     pos = start
-    for i in range(start, end, -1):
-        if bank[i] >= maxNum:
-            maxNum = bank[i]
-            pos = i
-    return pos, maxNum
+    maxNum = max(bank[end:start])
+    pos = bank[end:start].index(maxNum)+end
+    return pos+1, maxNum
         
     
 # for line in lines:
 #     int_list = list(map(int, line.split()))
     
-nums=[list(map(int, [digit for digit in line[:-1]])) for line in lines]    
+nums=[list(map(int, [digit for digit in line.strip('\n')])) for line in lines]    
     # for digit in line(len):
     #     digit = int(digit)
 #print(nums)
@@ -29,9 +27,9 @@ JoltageSumTotal = 0
 for bank in nums:
     maxNums = bank[-12:]
     length = len(bank)
-    end = -1
+    end = 0
     for i in range(0,12):
-        end, maxNum = findBoundedMax((length-12)+i,end,bank)
+        end, maxNum = findBoundedMax((length-12)+i+1,end,bank)
         maxNums[i] = maxNum
     string = ''.join([str(n) for n in maxNums])
     JoltageSumPart1 += int(string[:2])
