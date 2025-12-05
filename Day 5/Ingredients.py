@@ -79,5 +79,3 @@ for idRange in freshIDs:
     freshSum += (idRange[1]+1)-idRange[0]
 
 print(f'The sum of fresh IDs is {freshSum}')
-# Too Low - 361427314021581
-#           358390896254879 - lower :(
