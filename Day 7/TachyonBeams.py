@@ -2,6 +2,8 @@ PATH = "Day 7/input.txt"
 START = 'S'
 SPLITTER = '^'
 BEAM = '|'
+# EMPTY = '.'
+# TIMELINE_BEAM = '!'
 input = open(PATH, 'r')
 
 manifold = input.readlines()
@@ -11,27 +13,45 @@ width = len(manifold[0])
 
 startInd = manifold[0].index(START)
 
-def split(x,y):
-    if (manifold[y][x] != BEAM):
-        return findNextSplit(x,y)
-    return 0
+def split(x,y,countSplits):
+    if (manifold[y][x] == BEAM):
+        countSplits = False
+    splits, timelines = findNextSplit(x,y,countSplits)
+    return splits, timelines
 
-def findNextSplit(x,y):
+def findNextSplit(x,y,countSplits):
     splits = 0
+    timelines = 0
     while y < height:
         if (manifold[y][x] == BEAM):
-            return 0
+            countSplits = False
+        if (manifold[y][x].isnumeric()):
+            timelines = int(manifold[y][x])
+            return splits,timelines
         if (manifold[y][x] == SPLITTER):
-            splits += 1
+            timelines += 1
+            if(countSplits):
+                splits += 1
             if (0 <= x-1):
-                splits += split(x-1,y)
+                newSplits,newTimelines = split(x-1,y,countSplits)
+                splits += newSplits
+                timelines += newTimelines
             if (x+1 < width):
-                splits += split(x+1,y)
-            manifold[y][x] = str(splits)
-            return splits
+                #timelines += 1 - only 1 new timeline per split
+                newSplits,newTimelines = split(x+1,y,countSplits)
+                splits += newSplits
+                timelines += newTimelines
+            manifold[y][x] = str(timelines)
+            return splits,timelines
+        # if(not countSplits):
+        #     if(manifold[y][x] == EMPTY):
+        #         manifold[y][x] == TIMELINE_BEAM
+        # else:
         manifold[y][x] = BEAM
         y += 1
-    return splits
- 
-totalSplits = findNextSplit(startInd,1)   
+    return splits, timelines
+
+totalSplits,timelines = findNextSplit(startInd,1,True) 
+timelines += 1 # Add the original timeline  
 print(f"The beam will be split {totalSplits} times")
+print(f"The number of timelines is {timelines}")
