@@ -8,6 +8,7 @@ NUM_CIRCUITS = 3
 input = open(PATH, 'r')
 
 lines = input.readlines()
+numBoxes = len(lines)
 
 class JunctionBox():
     def __init__(self, x, y, z):
@@ -28,6 +29,9 @@ class JunctionBox():
         
     def getCircuit(self):
         return self.circuit
+    
+    def getX(self):
+        return self.x
     
     def __repr__(self) -> str:
         return f"Box ({self.x}, {self.y}, {self.z})"
@@ -75,8 +79,7 @@ def getNextClosestBoxes(i):
     box2Circuit = box2.getCircuit()
     return box1,box2, box1Circuit, box2Circuit
 
-# Make the CONNECTIONS shortest circuits
-for i in range(CONNECTIONS):
+def makeConnection():
     box1, box2, box1Circuit, box2Circuit = getNextClosestBoxes(i)
     if (box1Circuit == box2Circuit and box1Circuit != None):
         pass
@@ -94,14 +97,24 @@ for i in range(CONNECTIONS):
     else: # Merge Circuits
         box1Circuit.merge(box2Circuit)
         circuits.remove(box2Circuit)
-
+        
+    return (box1.x)*(box2.x) # Return puzzle solution each time - answer is the last one to be returned
+# Make the CONNECTIONS shortest circuits
+for i in range(CONNECTIONS):
+    makeConnection()
         
 bigestCircuits = sorted(circuits, key=lambda x: x.getNumberOfBoxes(), reverse=True)
 length = 1
-for i in range(NUM_CIRCUITS):
-    circuitLength = bigestCircuits[i].getNumberOfBoxes()
+for j in range(NUM_CIRCUITS):
+    circuitLength = bigestCircuits[j].getNumberOfBoxes()
     length *= circuitLength
     
 print(f"The length of the {NUM_CIRCUITS} biggest circuits, multiplied together is {length}")
 
-# Incorrect - 8
+# Now continue connecting until one circuit has all boxes
+while(bigestCircuits[0].getNumberOfBoxes() < numBoxes):
+    i += 1
+    solution = makeConnection()
+    bigestCircuits = sorted(circuits, key=lambda x: x.getNumberOfBoxes(), reverse=True)
+    
+print(f"Multiplying the x cords of the last connected boxes is {solution}")
