@@ -1,3 +1,6 @@
+import sys
+
+
 PATH = "Day 9/inputtest.txt"
 input = open(PATH, 'r')
 class Point():
@@ -32,6 +35,7 @@ class Point():
                     potentialPoints.append(point)
         if (len(potentialPoints) != 1):
             print("ahhhh")
+            sys.exit(1)
         else:
             point = potentialPoints[0]
         return point
@@ -60,28 +64,28 @@ class Line():
         #     self.b = -1
         #     self.c = y1 - (self.slope * x1)
             
-    def inRange(self, point):
-        x1 = self.point1.getX()
-        y1 = self.point1.getY()
+    def inRange(self, val, X):
+        if (X):
+            x1 = self.point1.getX()
+            x2 = self.point2.getX()
+            xl = min(x1,x2)
+            xh = max(x1,x2)
+            xp = val
+            return (xl <= xp <= xh)
         
-        x2 = self.point2.getX()
-        y2 = self.point2.getY()
-        
-        xl = min(x1,x2)
-        xh = max(x1,x2)
-        yl = min(y1,y2)
-        yh = max(y1,y2)
-        
-        xp = point.getX()
-        yp = point.getY()
-        
-        return ((xl <= xp <= xh) and (yl <= yp <= yh))
+        else:
+            y1 = self.point1.getY()
+            y2 = self.point2.getY()
+            yl = min(y1,y2)
+            yh = max(y1,y2)     
+            yp = val
+            return (yl <= yp <= yh)
             
     def __repr__(self) -> str:
         if(self.vertical):
-            return f"{self.strType}: Vertical at x = {self.point1.getX()}"
+            return f"{self.strType}: Vertical at x = {self.xv}"
         else:
-            return f"{self.strType}: ({self.a}x) + ({self.b}y) + ({self.c})"
+            return f"{self.strType}: Horizontal at y = + {self.yh}"
         
     
 class BoundingLine(Line):
@@ -126,22 +130,13 @@ class Rectangle():
     def containedIn(self, boundingLines):
         for boundary in boundingLines:
             for line in self.lines:
-                if (line.vertical and boundary.vertical and line.xv == boundary.xv):
-                    ly1 = line.point1.getY()
-                    by1 = boundary.point1.getY()
-                    by2 = boundary.point2.getY()
-                    if (by1 <= ly1 <= by2):
-                        ly2 = line.point2.getY()
-                        if not (by1 <= ly2 <= by2):
-                            return False # Goes out-of-bounds
-                elif (line.horizontal and boundary.horizontal and line.yh == boundary.yh):
-                    lx1 = line.point1.getX()
-                    bx1 = boundary.point1.getX()
-                    bx2 = boundary.point2.getX()
-                    if (bx1 <= lx1 <= bx2):
-                        lx2 = line.point2.getX()
-                        if not (bx1 <= lx2 <= bx2):
-                            return False # Goes out-of-bounds
+                if (line.vertical and boundary.horizontal and  boundary.inRange(line.xv,True)):
+                    if(line.inRange(boundary.yh, False)):
+                        return False # Goes out-of-bounds
+                    
+                elif (line.horizontal and boundary.vertical and boundary.inRange(line.yh,False)):
+                    if(line.inRange(boundary.xv, False)):
+                        return False # Goes out-of-bounds
         return True # Remains in-bounds
         
     def getArea(self):
@@ -168,16 +163,59 @@ for i in range(numPoints):
         
 print(f"The largest area after calculating all of the areas is {maxArea}")
 
-
+def inflate(points):
+    horz = False #Point1 to 2 is horizontal line
+    first = True
+    newPoints = []
+    for i in range(numPoints):
+        point = points[i]
+        lastPoint = points[i-1]
+        nextPoint = points[(i+1)%numPoints]
+        
+        pX = point.getX()
+        pY = point.getY()
+        
+        if (horz):
+            lY = lastPoint.getY()
+                
+            if (lY < pY):
+                dy = -1
+            else:
+                dy = 1
+        else:
+            lX = lastPoint.getX()
+            if (lX < pX):
+                dx = 1
+            else:
+                dx = -1
+                
+            if (first):
+                nY = nextPoint.getY()
+                if (nY < pY):
+                    dy = 1
+                else:
+                    dy = -1
+            
+        first = False
+        newPoint = Point(pX+dx,pY+dy)
+        newPoints.append(newPoint)
+        horz = not horz
+    return newPoints
+        
 point1 = points[0]
 x = True
-boundingLines = []
-for i in range(numPoints):
+boundaryPoints = [point1]
+for i in range(numPoints-1):
     point2 = point1.getConnectedPoint(points,x)
-    boundingLines.append(BoundingLine(point1, point2))
+    boundaryPoints.append(point2)
     x = not x
     point1 = point2
-   
+    
+boundaryPointsInflated = inflate(boundaryPoints)
+boundingLines = []
+
+for j in range(numPoints - 1):
+   boundingLines.append(BoundingLine(boundaryPointsInflated[j],boundaryPointsInflated[j+1]))
 maxAreaPt2 = 0    
 for i in range(numPoints):
     for j in range(i+1,numPoints):
@@ -199,4 +237,10 @@ print(f"The largest contained area after calculating all of the areas is {maxAre
 # .........XXX..
 # .........#X#..
 # ..............
+
+
+  ...000000.
+  ........0
+  ........0
+  ...000000
 '''
